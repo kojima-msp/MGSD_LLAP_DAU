@@ -19,7 +19,7 @@ skimage==0.24.0
 
 ## Install
 ```bash
-git clone xxx
+git clone https://github.com/kojima-msp/MGSD_LLAP_DAU.git
 ```
 
 ## Usage
@@ -56,7 +56,8 @@ python3 results/plot_signal.py Weather 0
 ```
 
 ### Note
-`ae` pretrained model size is over 100MB, so they can be downloaded [here]()
+Dataset and pretrained model can be downloaded [here](https://drive.google.com/drive/folders/1A_0lW4UeaRUc3kWrG-usnBo6m49_m9pn). 
+Please place `./data`!
 
 ## Reference
 [1] H. Kojima, K. Takanami, Junya Hara, Yukihiro Bandoh, Seishi Takamura, Hirhoshi Higashi, and Yuichi Tanaka, "Multimodal Graph Signal Denoising with Simultaneous Graph Learning," xxx, xxx.
