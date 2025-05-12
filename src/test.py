@@ -44,7 +44,7 @@ if __name__ == '__main__':
         noise_list = [3,5,7,9]
         suffix = f'2013-2022'
 
-    matfile_list = sorted(glob.glob(f'./data/{datatype}/data_{suffix}/*.mat'.format(datatype=datatype, N_s=N_s, N_m=N_m)))
+    matfile_list = sorted(glob.glob(f'./data/{datatype}/data_{suffix}/*.mat'))
     N_testfiles = int(len(matfile_list)/N_split)
 
     ## for different layer
@@ -92,8 +92,7 @@ if __name__ == '__main__':
                     if model_name == 'MGSD_LLap_DAU':
                         L_m_out_list[test_idx, noise_idx, :, :, :] = L_m_out.cpu().detach().numpy()
                         L_s_out_list[test_idx, noise_idx, :, :, :] = L_s_out.cpu().detach().numpy()
-
-            # save as csv        
+      
             if model_name == 'MGSD_LLap_DAU':
                 np.savez_compressed(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}/test{trial_idx:02d}_nlayers{N_layers}_nepochs{N_epochs}',
                             X_out_list=X_out_list,

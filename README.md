@@ -1,8 +1,10 @@
 MGSD_LLap_DAU
 ====
 
+Official Pytorch implementation of the paper "Algorithm Unrolling-based Denoising of Multimodal Graph Signals" (submmited to IEEE TSIPN).
+
 ## Abstract
-> We propose a denoising method of multimodal graph signals by iteratively solving signal restoration and  graph learning problems. Many complex-structured data, i.e., those on sensor networks, can capture multiple modalities at each measurement point, referred to as *modalities*. They are also assumed to have an underlying structure or correlations in modality as well as space. Such multimodal data are regarded as graph signals on a *twofold graph* and they are often corrupted by noise. Furthermore, their spatial/modality relationships are not always given a priori: We need to estimate twofold graphs during a denoising algorithm. In this paper, we consider a signal denoising method on twofold graphs, where graphs are learned simultaneously. We formulate an optimization problem for that and parameters in an iterative algorithm are learned from training data by *unrolling* the iteration with deep algorithm unrolling. Experimental results on synthetic and real-world data demonstrate that the proposed method outperforms existing model- and deep learning-based graph signal denoising methods.
+> We propose a denoising method of multimodal graph signals by iteratively solving signal restoration and  graph learning problems. Many complex-structured data, i.e., those on sensor networks, can capture multiple modalities at each measurement point, referred to as *modalities*. They are also assumed to have an underlying structure or correlations in modality as well as space. Such multimodal data are regarded as graph signals on a *twofold graph* and they are often corrupted by noise. Furthermore, their spatial/modality relationships are not always given a priori: We need to estimate twofold graphs during a denoising algorithm. In this paper, we consider a signal denoising method on twofold graphs, where graphs are learned simultaneously. We formulate an optimization problem for that and parameters in an iterative algorithm are learned from training data by unrolling the iteration with deep algorithm unrolling. Experimental results on synthetic and real-world data demonstrate that the proposed method outperforms existing model- and deep learning-based graph signal denoising methods.
 
 ## Requirement
 ```bash
@@ -60,4 +62,4 @@ Dataset and pretrained model can be downloaded [here](https://drive.google.com/d
 Please place `./data`!
 
 ## Reference
-[1] H. Kojima, K. Takanami, Junya Hara, Yukihiro Bandoh, Seishi Takamura, Hirhoshi Higashi, and Yuichi Tanaka, "Multimodal Graph Signal Denoising with Simultaneous Graph Learning," xxx, xxx.
+[1] H. Kojima, K. Takanami, Junya Hara, Yukihiro Bandoh, Seishi Takamura, Hirhoshi Higashi, and Yuichi Tanaka, "Algorithm Unrolling-based Denoising of Multimodal Graph Signals," xxx, xxx.

@@ -142,7 +142,7 @@ class MGSD_LLap_DAU(nn.Module):
         L_m_list[0, :, :] = self.coefficient_L * (self.N_m*torch.eye(self.N_m) - torch.ones(self.N_m, self.N_m))
         L_s_list[0, :, :] = self.coefficient_L * (self.N_s*torch.eye(self.N_s) - torch.ones(self.N_s, self.N_s))
 
-        ## Roop
+        ## loop
         X_out = X_out_list[0, :, :]
         L_m = L_m_list[0, :, :]
         L_s = L_s_list[0, :, :]

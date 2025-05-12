@@ -30,6 +30,9 @@ N_split = 2
 
 lr = 1e-2
 
+if datatype != 'Synthetic' and datatype != 'Weather':
+    sys.exit('Error: datatype should be `Synthetic` or `Weather`')
+
 if datatype == 'Synthetic':
     N_s = 80
     N_m = 120
