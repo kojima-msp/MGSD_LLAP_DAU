@@ -27,7 +27,7 @@ source .venv/bin/activate
 
 ## Usage
 
-Yout can execute train & test models with `Synthetic`/`Weather` argument. 
+You can execute train & test models with `Synthetic`/`Weather` argument. 
 
 ### Train Models
 ```shell
