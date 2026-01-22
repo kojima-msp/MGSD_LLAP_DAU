@@ -22,7 +22,7 @@ torch.set_default_device(device)
 
 
 class MGSD_LLap_DAU(nn.Module):
-    def __init__(self, layers:int, N_s:int, N_m:int, default:Optional[float]=0.5, step_size_pds:float=5e-3, iters_pds:int=1000, tol_pds:float=1e-3, coefficient_L=0.1, run_debug:bool=False):
+    def __init__(self, layers:int, N_s:int, N_m:int, default:Optional[float]=0.5, step_size_pds:float=5e-3, iters_pds:int=1000, tol_pds:float=1e-3):
         super().__init__()
         self.layers = layers
         self.alpha_s = nn.ParameterList([nn.Parameter(torch.tensor([default])) for _ in range(layers)])
@@ -34,24 +34,23 @@ class MGSD_LLap_DAU(nn.Module):
         self.step_size_pds = step_size_pds
         self.iters_pds = iters_pds
         self.tol_pds = tol_pds
-        self.coefficient_L = coefficient_L
-        self.run_debug = run_debug
         self.N_m = N_m
         self.N_s = N_s
         self.Phi_m = self._create_Phi(N_m)
         self.Phi_s = self._create_Phi(N_s)
         self.Psi_m = self._create_Psi(N_m)
         self.Psi_s = self._create_Psi(N_s)
+        
+        # added for ablation study
+        self.L_s = None
+        self.L_m = None
     
-    ## ReLU
-    def _relu(self, x):
-        return torch.maximum(x, torch.tensor(1e-08))
+        ## ReLU
+        self._relu = nn.ReLU()
+    
     
     def _min_max_normalization(self, x):
         return (x - torch.min(x)) / (torch.max(x) - torch.min(x))
-    
-    def _calc_rmse(self, Y, X):
-        return torch.sqrt(torch.mean((Y-X)**2))
 
     ## convert matrix to half-vector
     def _mat2vech(self, L):
@@ -94,7 +93,6 @@ class MGSD_LLap_DAU(nn.Module):
         vecXX_ = torch.t(torch.mm(X, torch.t(X))).contiguous().view(N**2,1)
         vecXX_ = self._min_max_normalization(vecXX_) * 10
         Phi_vecXX_ = torch.mm(Phi.T, vecXX_)
-        Phi_Phi = torch.mm(Phi.T, Phi)
         theta = self.step_size_pds
 
         ## initialization
@@ -102,14 +100,11 @@ class MGSD_LLap_DAU(nn.Module):
 
         for iter in range(self.iters_pds):
             z = ell - theta * (alpha * Phi_vecXX_ + 2 * gamma * ell + torch.mm(Psi.T, b_0))
-            # z = ell - theta * (alpha * Phi_vecXX_ + gamma * torch.mm(Phi_Phi, ell) + torch.mm(Psi.T, b_0))
             z_0 = b_0 + theta * torch.mm(Psi, ell)
             p = torch.where(z>0, 0, z)
             p_0 = z_0 - theta * 0.5 * (z_0/theta + torch.sqrt((z_0/theta)**2 + 4 * beta / theta))
             q = p - theta * (alpha * Phi_vecXX_ + 2 * gamma * p + torch.mm(Psi.T, p_0))
-            # q = p - theta * (alpha * Phi_vecXX_ + gamma * torch.mm(Phi_Phi, p) + torch.mm(Psi.T, p_0))
             q_0 = p_0 + theta * torch.mm(Psi, p)
-            # print(torch.norm(-z_0 + q_0) / torch.norm(ell))
             if torch.norm(-z + q) / torch.norm(ell) < self.tol_pds:
                 ell = ell - z + q
                 break
@@ -117,16 +112,20 @@ class MGSD_LLap_DAU(nn.Module):
             b_0 = b_0 - z_0 + q_0
         return ell
     
-    def forward(self, Y):
+    def forward(self, Y, L_m:Optional[torch.tensor]=None, L_s:Optional[torch.tensor]=None):
         """
         Input
         ------
-        Y : torch.tensor
+        Y : torch.tensor [Observed signals]
             N_s x N_m
+        L_m : torch.tensor [(Optional) Groundtruth graph Laplacian for modality m (only used in ablation study)]
+            N_m x N_m
+        L_s : torch.tensor [(Optional) Groundtruth graph Laplacian for modality s (only used in ablation study)]
+            N_s x N_s
         
         Output
         ------
-        X : torch.tensor
+        X : torch.tensor [Estimated denoised signals]
             N_s x N_m
         """
 
@@ -139,40 +138,51 @@ class MGSD_LLap_DAU(nn.Module):
         L_m_list = torch.zeros(self.layers+1, self.N_m, self.N_m)
         L_s_list = torch.zeros(self.layers+1, self.N_s, self.N_s)
         X_out_list[0,:,:] = Y
-        L_m_list[0, :, :] = self.coefficient_L * (self.N_m*torch.eye(self.N_m) - torch.ones(self.N_m, self.N_m))
-        L_s_list[0, :, :] = self.coefficient_L * (self.N_s*torch.eye(self.N_s) - torch.ones(self.N_s, self.N_s))
+        L_m_list[0, :, :] = 0.1 * (self.N_m*torch.eye(self.N_m) - torch.ones(self.N_m, self.N_m)) # fully connected graph
+        L_s_list[0, :, :] = 0.1 * (self.N_s*torch.eye(self.N_s) - torch.ones(self.N_s, self.N_s)) # fully connected graph
 
-        ## loop
+        ## initialize L_m and L_s for ablation study
+        self.L_m = L_m
+        self.L_s = L_s
+
         X_out = X_out_list[0, :, :]
-        L_m = L_m_list[0, :, :]
-        L_s = L_s_list[0, :, :]
+        L_m = L_m_list[0, :, :] if self.L_m is None else self.L_m
+        L_s = L_s_list[0, :, :] if self.L_s is None else self.L_s
+        
+        ## loop
         for layer in range(self.layers):
-            self.alpha_s[layer].data = self._relu(self.alpha_s[layer]).data
-            self.beta_s[layer].data = self._relu(self.beta_s[layer]).data
-            self.gamma_s[layer].data = self._relu(self.gamma_s[layer]).data
-            self.alpha_m[layer].data = self._relu(self.alpha_m[layer]).data
-            self.beta_m[layer].data = self._relu(self.beta_m[layer]).data
-            self.gamma_m[layer].data = self._relu(self.gamma_m[layer]).data
+            alpha_s = self._relu(self.alpha_s[layer])
+            alpha_m = self._relu(self.alpha_m[layer])
+            beta_s = self._relu(self.beta_s[layer])
+            beta_m = self._relu(self.beta_m[layer])
+            gamma_s = self._relu(self.gamma_s[layer])
+            gamma_m = self._relu(self.gamma_m[layer])
 
             X_ = X_out.T
-            # ell_m = self._gsp_llap_pds( ell=torch.mm(torch.linalg.pinv(self.Phi_m), L_m.T.reshape(N_m**2,1)), X=X_,
-            #                             Phi=self.Phi_m, Psi=self.Psi_m,
-            #                             alpha=self.alpha_m[layer], beta=self.beta_m[layer], gamma=self.gamma_m[layer])
-            ell_m = self._gsp_llap_pds( ell=self._mat2vech(L_m), X=X_,
+
+            # code of line 2 in Algorithm 2
+            if self.L_m is None:
+                ell_m = self._gsp_llap_pds( ell=self._mat2vech(L_m), X=X_,
                                         Phi=self.Phi_m, Psi=self.Psi_m,
-                                        alpha=self.alpha_m[layer], beta=self.beta_m[layer], gamma=self.gamma_m[layer])
-            L_m = torch.mm(self.Phi_m, ell_m).reshape(self.N_m, self.N_m).T
-            X_ = torch.mm( torch.linalg.pinv(torch.eye(self.N_m) + self.alpha_m[layer] * L_m), Y.T )
-            # X_ = torch.linalg.solve((torch.eye(self.N_m) + self.alpha_m[layer] * L_m), Y.T)
-            # ell_s = self._gsp_llap_pds( ell=torch.mm(torch.linalg.pinv(self.Phi_s), L_s.T.reshape(N_s**2,1)), X=X_.T,
-            #                             Phi=self.Phi_s, Psi=self.Psi_s,
-            #                             alpha=self.alpha_s[layer], beta=self.beta_s[layer], gamma=self.gamma_s[layer])
-            ell_s = self._gsp_llap_pds( ell=self._mat2vech(L_s), X=X_.T,
+                                        alpha=alpha_m, beta=beta_m, gamma=gamma_m)
+                L_m = torch.mm(self.Phi_m, ell_m).reshape(self.N_m, self.N_m).T
+            else: # use ground truth L_m
+                L_m = self.L_m
+            
+            # code of line 3 in Algorithm 2
+            X_ = torch.mm(torch.linalg.pinv(torch.eye(self.N_m) + alpha_m * L_m), Y.T)
+
+            # code of line 4 in Algorithm 2
+            if self.L_s is None:
+                ell_s = self._gsp_llap_pds( ell=self._mat2vech(L_s), X=X_.T,
                                         Phi=self.Phi_s, Psi=self.Psi_s,
-                                        alpha=self.alpha_s[layer], beta=self.beta_s[layer], gamma=self.gamma_s[layer])
-            L_s = torch.mm(self.Phi_s, ell_s).reshape(self.N_s, self.N_s).T
-            X_out = torch.mm( torch.linalg.pinv(torch.eye(self.N_s) + self.alpha_s[layer] * L_s), X_.T )
-            # X_out = torch.linalg.solve((torch.eye(self.N_s) + self.alpha_s[layer] * L_s), X_.T)
+                                        alpha=alpha_s, beta=beta_s, gamma=gamma_s)
+                L_s = torch.mm(self.Phi_s, ell_s).reshape(self.N_s, self.N_s).T
+            else: # use ground truth L_s
+                L_s = self.L_s
+            
+            # code of line 5 in Algorithm 2
+            X_out = torch.mm(torch.linalg.pinv(torch.eye(self.N_s) + alpha_s * L_s), X_.T)
 
             X_out_list[layer+1, :, :] = X_out
             L_m_list[layer+1, :, :] = L_m

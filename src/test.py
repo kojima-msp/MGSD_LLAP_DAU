@@ -1,17 +1,16 @@
 """
-$python3 methods/tgsr_dau/test.py
+$python3 src/test.py
 """
-import numpy as np
 
-import torch
 import sys
-
-from scipy import io
-from typing import Optional
 import os
 import glob
-import pandas as pd
+
+import numpy as np
+from scipy import io
 from sklearn.metrics import root_mean_squared_error
+
+import torch
 
 from util import model_selector
 
@@ -21,9 +20,8 @@ torch.set_default_device(device)
 
 if __name__ == '__main__':
 
-
-    # 共通の設定
-    N_layers_list = [1,5,9]
+    # settings
+    N_layers = 9
 
     args = sys.argv
     datatype = args[1]
@@ -47,59 +45,58 @@ if __name__ == '__main__':
     matfile_list = sorted(glob.glob(f'./data/{datatype}/data_{suffix}/*.mat'))
     N_testfiles = int(len(matfile_list)/N_split)
 
-    ## for different layer
-    for N_layers in N_layers_list:
-        trial_list = sorted(glob.glob(f'./data/{datatype}/trained_params/nlayers{N_layers:02d}/{model_name}/*.pth'))
-        loss_df = pd.DataFrame(np.zeros((len(noise_list), N_split)),
-                                columns = ['test_{file_idx:02d}' for file_idx in range(N_split)],
-                                index = ['{noise:03f}' for noise in noise_list]
-                                )
 
-        os.makedirs(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}', exist_ok=True)
-        
-        ## cross varidation
-        for trial_idx, trial in enumerate(trial_list):
-            test_matfile_list = matfile_list[trial_idx*N_testfiles:(trial_idx+1)*N_testfiles]
+    trial_list = sorted(glob.glob(f'./data/{datatype}/trained_params/{model_name}/*.pth'))
 
-            model = model_selector(model_name, N_layers, N_s, N_m).to(device)
-            model.load_state_dict(torch.load(f'./data/{datatype}/trained_params/nlayers{N_layers:02d}/{model_name}/fortest{trial_idx}.pth', weights_only=True))
+    os.makedirs(f'./results/{datatype}/data_{suffix}/{model_name}', exist_ok=True)
+    
+    ## cross varidation
+    for trial_idx, trial in enumerate(trial_list):
+        test_matfile_list = matfile_list[trial_idx*N_testfiles:(trial_idx+1)*N_testfiles]
 
-            X_out_list = np.zeros((N_testfiles, len(noise_list), N_s, N_m))
+        model = model_selector(model_name, N_layers, N_s, N_m).to(device)
+        model.load_state_dict(torch.load(f'./data/{datatype}/trained_params/{model_name}/fortest{trial_idx}.pth', weights_only=True))
 
-            if model_name == 'MGSD_LLap_DAU':
-                L_s_out_list = np.zeros((N_testfiles, len(noise_list), N_layers+1, N_s, N_s))
-                L_m_out_list = np.zeros((N_testfiles, len(noise_list), N_layers+1, N_m, N_m))
+        X_out_list = np.zeros((N_testfiles, len(noise_list), N_s, N_m))
+
+        if model_name == 'MGSD_LLap_DAU':
+            X_history_list = np.zeros((N_testfiles, len(noise_list), N_layers+1, N_s, N_m))
+            L_s_out_list = np.zeros((N_testfiles, len(noise_list), N_layers+1, N_s, N_s))
+            L_m_out_list = np.zeros((N_testfiles, len(noise_list), N_layers+1, N_m, N_m))
+            X_groundtruth_list = np.zeros((N_testfiles, N_s, N_m))
+            
+        for test_idx, test_matfile in enumerate(test_matfile_list):
+            TestData = io.loadmat(test_matfile)
+            X = TestData["X"]
+            Y_list = torch.tensor(TestData["Y_list"].transpose((2,0,1))) if datatype == 'Synthetic' else torch.tensor(TestData["Y_list"])
+
+            for noise_idx, noise in enumerate(noise_list):
+                Y = Y_list[noise_idx, : , :]
                 
-            for test_idx, test_matfile in enumerate(test_matfile_list):
-                TestData = io.loadmat(test_matfile)
-                X = TestData["X"]
-                Y_list = torch.tensor(TestData["Y_list"].transpose((2,0,1))) if datatype == 'Synthetic' else torch.tensor(TestData["Y_list"])
+                if model_name != 'MGSD_LLap_DAU':
+                    X_out = model.forward(Y)
+                else: # MGSD_LLap_DAU
+                    L_m_out, L_s_out, X_history, X_out = model.forward(Y)
 
-                for noise_idx, noise in enumerate(noise_list):
-                    Y = Y_list[noise_idx, : , :]
-                    
-                    if model_name != 'MGSD_LLap_DAU':
-                        X_out = model.forward(Y)
-                    else:
-                        L_m_out, L_s_out, _, X_out = model.forward(Y)
+                rmse = root_mean_squared_error(X, X_out.cpu().detach().numpy())
+                print(model_name, 'test{:02d}'.format(trial_idx*N_testfiles+test_idx), f'{noise:.3f}', rmse)     
 
-                    rmse = root_mean_squared_error(X, X_out.cpu().detach().numpy())
-                    print(model_name, f'nlayers{N_layers:02d}', 'test{:02d}'.format(trial_idx*N_testfiles+test_idx), f'{noise:.3f}', rmse)     
+                X_out_list[test_idx, noise_idx, :, :] = X_out.cpu().detach().numpy()
 
-                    loss_df.iloc[noise_idx, trial_idx] = loss_df.iloc[noise_idx, trial_idx] + rmse / N_testfiles
-                    X_out_list[test_idx, noise_idx, :, :] = X_out.cpu().detach().numpy()
+                if model_name == 'MGSD_LLap_DAU':
+                    L_m_out_list[test_idx, noise_idx, :, :, :] = L_m_out.cpu().detach().numpy()
+                    L_s_out_list[test_idx, noise_idx, :, :, :] = L_s_out.cpu().detach().numpy()
+                    X_history_list[test_idx, noise_idx, :, :, :] = X_history.cpu().detach().numpy()
+                    X_groundtruth_list[test_idx, :, :] = X
 
-                    if model_name == 'MGSD_LLap_DAU':
-                        L_m_out_list[test_idx, noise_idx, :, :, :] = L_m_out.cpu().detach().numpy()
-                        L_s_out_list[test_idx, noise_idx, :, :, :] = L_s_out.cpu().detach().numpy()
-      
-            if model_name == 'MGSD_LLap_DAU':
-                np.savez_compressed(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}/test{trial_idx:02d}_nlayers{N_layers}_nepochs{N_epochs}',
-                            X_out_list=X_out_list,
-                            L_m_out_list=L_m_out_list,
-                            L_s_out_list=L_s_out_list
-                            )
-            else:
-                np.savez_compressed(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}/test{trial_idx:02d}_nlayers{N_layers}_nepochs{N_epochs}', X_out_list=X_out_list)
-        
-        loss_df.to_csv(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}/nlayers{N_layers}_nepochs{N_epochs}.csv')
+        outpath = f'./results/{datatype}/data_{suffix}/{model_name}/test{trial_idx:02d}_nepochs{N_epochs}'
+        if model_name == 'MGSD_LLap_DAU':
+            np.savez_compressed(outpath,
+                        X_out_list=X_out_list,
+                        X_history_list=X_history_list,
+                        L_m_out_list=L_m_out_list,
+                        L_s_out_list=L_s_out_list,
+                        X_groundtruth_list=X_groundtruth_list
+                        )
+        else:
+            np.savez_compressed(outpath, X_out_list=X_out_list)

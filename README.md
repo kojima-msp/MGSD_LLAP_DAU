@@ -48,12 +48,12 @@ python3 src/exe_existing.py Weather hd
 ```shell
 python3 results/plot_laplacian.py Synthetic 0 # idx is a target number of the model
 python3 results/plot_parameters.py Synthetic
-python3 results/plot_rmse_psnr.py Synthetic
+python3 results/print_rmse.py Synthetic
 python3 results/plot_signal.py Synthetic 0 # idx is a target number of the dataset
 
 python3 results/plot_laplacian.py Weather 0
 python3 results/plot_parameters.py Weather
-python3 results/plot_rmse_psnr.py Weather
+python3 results/print_rmse.py Weather
 python3 results/plot_signal.py Weather 0
 ```
 

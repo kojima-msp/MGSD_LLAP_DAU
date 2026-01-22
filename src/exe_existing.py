@@ -64,12 +64,7 @@ if len(matfile_list) % N_split != 0:
     sys.exit('Error: Cannot split files. Change the value of N_split')
 N_testfiles = int(len(matfile_list)/N_split)
 
-
-loss_df = pd.DataFrame(np.zeros((len(noise_list), N_split)),
-                        columns = [f'test_{file_idx:02d}' for file_idx in range(N_split)],
-                        index = ['{noise:03f}' for noise in noise_list]
-                        )
-os.makedirs(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}', exist_ok=True)
+os.makedirs(f'./results/{datatype}/data_{suffix}/{model_name}', exist_ok=True)
 
 ## cross varidation
 for trial_idx in range(N_split):
@@ -90,12 +85,10 @@ for trial_idx in range(N_split):
             Y = Y_list[noise_idx, :, :]
             X_out = model.forward(Y)
             loss = torch.mean((X-X_out)**2)
-            print(model_name, f'nlayers{N_layers:02d}', 'test{:02d}'.format(trial_idx*N_testfiles+test_idx), f'{noise:.3f}', np.sqrt(loss.cpu().detach().numpy()))     
-            loss_df.iloc[noise_idx, trial_idx] = loss_df.iloc[noise_idx, trial_idx] + np.sqrt(loss.cpu().detach().numpy()) / N_testfiles
+            print(model_name, 'test{:02d}'.format(trial_idx*N_testfiles+test_idx), f'{noise:.3f}', np.sqrt(loss.cpu().detach().numpy()))     
             X_out_list[test_idx, noise_idx, :, :] = X_out.cpu().detach().numpy()
 
     # save as csv                
-    np.savez_compressed(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}/test{trial_idx:02d}_nlayers{N_layers}_nepochs{N_epochs}',
+    np.savez_compressed(f'./results/{datatype}/data_{suffix}/{model_name}/test{trial_idx:02d}_nepochs{N_epochs}.npz',
                         X_out_list=X_out_list
                         )
-    loss_df.to_csv(f'./results/{datatype}/data_{suffix}/nlayers{N_layers:02d}/{model_name}/nlayers{N_layers}_nepochs{N_epochs}.csv')
