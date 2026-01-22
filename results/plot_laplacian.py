@@ -1,11 +1,10 @@
-"""提案手法の各層で推定されたグラフラプラシアン行列の可視化
+"""Visualize the estimated graph Laplacians.
 
 Example:
 
-    $ python3 v2_plot_laplacian.py Synthetic 0
-    $ python3 v2_plot_laplacian.py Weather 0
+    $ python3 plot_laplacian.py Synthetic
+    $ python3 plot_laplacian.py Weather
 
-    where, 0 is the index of the dataset.
     The out put files are saved in the './results/_figures/{dataset}/laplacian/' directory.
 
 """
@@ -24,17 +23,14 @@ from scipy import io
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# 共通の設定
-N_layers = 9
 
-args = sys.argv
-dataset = args[1]
-data_idx = int(args[2])
+N_layers = 9
+dataset = sys.argv[1]
+data_idx = 0 # idx is a target number of the data
 N_epochs = 30
 vmin = 0
 vmax = 1
 
-# データセットごとに異なる設定
 if dataset == 'Synthetic':
     noise_list = [0.10, 0.15, 0.20, 0.25, 0.30]
     suffix = 's80m120'
@@ -45,7 +41,6 @@ elif dataset == 'Weather':
 
 path = f'./results/_figures/{dataset}/laplacian/{data_idx:02d}_'
 os.makedirs(f'./results/_figures/{dataset}/laplacian/', exist_ok=True)
-
 
 # plot groundtruth graph
 if dataset == 'Synthetic':

@@ -1,31 +1,28 @@
-"""各手法のRMSEおよびPSNRの可視化
-
+"""Print the RMSE table for each method and noise level.
 Example:
 
-    $ python3 plot_rmse_psnr.py Synthetic
-    $ python3 plot_rmse_psnr.py Weather
+    $ python3 print_rmse.py Synthetic
+    $ python3 print_rmse.py Weather
 
     The table of RMSE is printed in the terminal.
 """
-
 """
 @Author: Hayate Kojima
 @Contact: h-kojima@msp-lab.org
 @Date: 2025/04/01
 """
 
-import numpy as np
-import os
 import sys
+
+import numpy as np
 from scipy import io
 from sklearn.metrics import root_mean_squared_error
+
 import pandas as pd
 
 # 共通の設定
 method_list = ['glpf', 'hd', 'svds', 'ae', 'gcn', 'TGSR_DAU', 'MGSD_LLap_DAU']
-model_type_1 = ['glpf', 'hd', 'svds'] ## fixed layers/iters
 N_epochs = 30
-N_layers_list = [1,5,9]
 
 args = sys.argv
 dataset = args[1]
@@ -52,8 +49,6 @@ df = df.astype(float).fillna(0.0)
 for model_name in method_list:
 
     rmse = np.zeros_like(noise_list)
-
-    N_layers = N_layers_list[0] if model_name in model_type_1 else N_layers_list[-1]
 
     for data_idx in range(10):
 

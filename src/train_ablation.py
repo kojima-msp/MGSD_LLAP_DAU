@@ -1,6 +1,22 @@
+"""Train the MGSD_LLap_DAU model for ablation studies.
+
+Example:
+
+    $ python3 src/train_ablation.py gt
+    $ python3 src/train_ablation.py rbf
+    $ python3 src/train_ablation.py ls
+    $ python3 src/train_ablation.py lm
+
+"""
+"""
+@Author: Hayate Kojima
+@Contact: h-kojima@msp-lab.org
+@Date: 2025/12/26
+"""
 import os
 import glob
 import tqdm
+import sys
 
 from scipy import io
 import torch
@@ -14,7 +30,7 @@ torch.set_default_dtype(torch.float64)
 torch.set_default_device(device)
 
 # 共通の設定
-mode = 'lm' 
+mode = sys.argv[1]
 # 'gt' (for ablation study that uses ground truth graphs) or 'rbf' (for ablation study that uses RBF graphs)
 # or 'ls' (for ablation study that uses only spatial learned graph) or  'lm' (for ablation study that uses only temporal learned graph)
 

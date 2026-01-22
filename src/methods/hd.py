@@ -10,7 +10,7 @@ class HD():
     self.tau = tau
   
   def forward(self, Y):
-    self.N_s = Y.shape[0] # Nodes
+    self.N_s = Y.shape[0]
     
     Z_s = torch.cdist(Y, Y) ** 2
     Z_s = (Z_s - torch.min(Z_s)) / (torch.max(Z_s) - torch.min(Z_s))

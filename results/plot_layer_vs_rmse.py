@@ -1,8 +1,8 @@
-"""各層ごとのRMSEの比較
+"""Plot Layer vs RMSE.
 
 Example:
 
-    $ python3 v2_plot_layer_vs_rmse.py
+    $ python3 plot_layer_vs_rmse.py
 
     The out put files are saved in the './results/_figures/Synthetic/' directory.
 """
@@ -19,7 +19,6 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import scienceplots
-
 plt.style.use(['science', 'grid'])
 plt.rcParams["font.size"] = 12
 

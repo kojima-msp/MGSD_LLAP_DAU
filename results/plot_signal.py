@@ -1,36 +1,35 @@
-"""各手法の結果の可視化
+"""Plot the signals: original, observed, and denoised signals by each method.
 
 Example:
 
-    $ python3 v2_plot_signal.py Synthetic 0
-    $ python3 v2_plot_signal.py Weather 0
+    $ python3 plot_signal.py Synthetic
+    $ python3 plot_signal.py Weather
 
-    where, 0 is the index of the dataset.
     The out put files are saved in the './results/_figures/{dataset}/signal/' directory.
 """
-
 """
 @Author: Hayate Kojima
 @Contact: h-kojima@msp-lab.org
 @Date: 2025/04/01
 """
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 import os
 import sys
+
+import numpy as np
 from scipy import io
 from sklearn.metrics import root_mean_squared_error
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 # 共通の設定
 method_list = ['glpf', 'hd', 'svds', 'ae', 'gcn', 'TGSR_DAU', 'MGSD_LLap_DAU']
-model_type_1 = ['glpf', 'hd', 'svds', 'gcn'] ## fixed layers/iters
 N_epochs = 30
-N_layers_list = [1,5,9]
 
 args = sys.argv
 dataset = args[1]
-data_idx = int(args[2])
+data_idx = 0 # idx is a target number of the data
 
 # データセットごとに異なる設定
 if dataset == 'Synthetic':
@@ -76,9 +75,6 @@ trial_idx = 0 if data_idx <= 4 else 1
 
 # plot results
 for model_name in method_list:
-
-    # N_layers_iter = [N_layers_list[0]] if model_name in model_type_1 else N_layers_list
-    N_layers = N_layers_list[0] if model_name in model_type_1 else N_layers_list[-1]
 
     npz = np.load(f'./results/{dataset}/data_{suffix}/{model_name}/test{trial_idx:02d}_nepochs{N_epochs}.npz')
 

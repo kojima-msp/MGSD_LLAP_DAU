@@ -1,17 +1,14 @@
 """
- Multimodal Graph Signal Denoising with simultaneous Learning Laplacian Matrix using Deep Algorithm Unrolling
- written by takanami
+Algorithm Unrolling-based Denoising of Multimodal Graph Signals (MGSD_LLap_DAU) method.
+"""
+"""
+@Author: Hayate Kojima
+@Contact: h-kojima@msp-lab.org
+@Date: 2025/04/01
 """
 
-import numpy as np
-
 import torch
-import sys
-
 from torch import nn
-from torch.nn import functional as F
-from scipy import sparse
-from scipy import io
 from typing import Optional
 
 
@@ -23,6 +20,18 @@ torch.set_default_device(device)
 
 class MGSD_LLap_DAU(nn.Module):
     def __init__(self, layers:int, N_s:int, N_m:int, default:Optional[float]=0.5, step_size_pds:float=5e-3, iters_pds:int=1000, tol_pds:float=1e-3):
+        """
+        Input
+        ------
+        layers : int [Number of layers]
+        N_s : int [Number of spatial nodes]
+        N_m : int [Number of modality nodes]
+        default : float [(Optional) Initial value of learnable parameters]
+        step_size_pds : float [(Optional) Step size of PDS algorithm]
+        iters_pds : int [(Optional) Number of iterations of PDS algorithm]
+        tol_pds : float [(Optional) Tolerance of PDS algorithm]
+        """
+
         super().__init__()
         self.layers = layers
         self.alpha_s = nn.ParameterList([nn.Parameter(torch.tensor([default])) for _ in range(layers)])
@@ -66,20 +75,20 @@ class MGSD_LLap_DAU(nn.Module):
     ## arange transformation matrix that convert vec(L) from vech(L)
     def _create_Phi(self, N):
         Phi = torch.zeros(N**2, int(N*(N-1)/2))
-        k = 0   ## k=N*col+row と表せるが，理解の簡単のためkを使う．row<colのときにこの考えを利用する．
+        k = 0
         for col in range(N):
             for row in range(N):
                 if row > col:
                     Phi[k, k-int((col+1)*(col+2)/2)] = 1
-                    Phi[int(k/N)*(N+1), k-int((col+1)*(col+2)/2)] = -1  ## あとで変更
+                    Phi[int(k/N)*(N+1), k-int((col+1)*(col+2)/2)] = -1
                 elif row < col:
                     Phi[k, col-1+int((N-2+N-row-1)*row/2)] = 1
-                    Phi[int(k/N)*(N+1), col-1+int((N-2+N-row-1)*row/2)] = -1    ## あとで変更
+                    Phi[int(k/N)*(N+1), col-1+int((N-2+N-row-1)*row/2)] = -1
                 k = k+1
         return Phi
     
     def _create_Psi(self, N):
-        Phi = self._create_Phi(N)   ## 入力にしちゃう
+        Phi = self._create_Phi(N)
         tmp = torch.zeros(N, N**2)
         for row in range(N):
             tmp[row, row*(N+1)] = 1

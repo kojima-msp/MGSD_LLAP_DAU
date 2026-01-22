@@ -20,21 +20,13 @@ def model_selector(model_name, N_layers, N_s, N_m):
     
 def make_RBF_graph(Y):
 
-    # for spatial graph
-    N_s = Y.shape[0]
-    Z_s = torch.cdist(Y, Y) ** 2
-    Z_s = (Z_s - torch.min(Z_s)) / (torch.max(Z_s) - torch.min(Z_s))
-    W_s = torch.mul(torch.exp(-Z_s / torch.tensor(1)), torch.ones((N_s, N_s))-torch.eye(N_s))
-    D_s = torch.squeeze(W_s @ torch.ones(N_s, 1))
-    L_s = torch.diag(D_s) - W_s
+    def _main(Y):
+        # for spatial graph
+        N_e = Y.shape[0]
+        Z_e = torch.cdist(Y, Y) ** 2
+        Z_e = (Z_e - torch.min(Z_e)) / (torch.max(Z_e) - torch.min(Z_e))
+        W_e = torch.mul(torch.exp(-Z_e / torch.tensor(1)), torch.ones((N_e, N_e))-torch.eye(N_e))
+        D_e = torch.squeeze(W_e @ torch.ones(N_e, 1))
+        return torch.diag(D_e) - W_e
 
-    # for temporal graph
-    Y = Y.T
-    N_m = Y.shape[0]
-    Z_m = torch.cdist(Y, Y) ** 2
-    Z_m = (Z_m - torch.min(Z_m)) / (torch.max(Z_m) - torch.min(Z_m))
-    W_m = torch.mul(torch.exp(-Z_m / torch.tensor(1)), torch.ones((N_m, N_m))-torch.eye(N_m))
-    D_m = torch.squeeze(W_m @ torch.ones(N_m, 1))
-    L_m = torch.diag(D_m) - W_m 
-
-    return L_s, L_m
+    return _main(Y), _main(Y.T)

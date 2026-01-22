@@ -61,16 +61,14 @@ class GCN(nn.Module):
     
     def preprocess(self, Y):
 
-        N_s, N_m = Y.shape
+        N_s,_ = Y.shape
 
         # RBF
         Z_s = torch.cdist(Y, Y) ** 2
         Z_s = (Z_s - torch.min(Z_s)) / (torch.max(Z_s) - torch.min(Z_s))
         Z_s = Z_s * 10
-        # Z_s = Z_s / (M * K) ## 正規化の代わりに平均化
         W_s = torch.mul(torch.exp(-Z_s / torch.tensor(1)), torch.ones((N_s,N_s))-torch.eye(N_s))
         D_s = torch.squeeze(W_s @ torch.ones(N_s,1))
-        L_s = torch.diag(D_s) - W_s
         W_s_tilde = W_s + torch.eye(N_s)
         D_s_tilde = D_s + torch.ones(N_s)
         P_s_tilde = torch.mm(torch.diag(torch.pow(D_s_tilde, -0.5)), torch.mm(W_s_tilde, torch.diag(torch.pow(D_s_tilde, -0.5))))

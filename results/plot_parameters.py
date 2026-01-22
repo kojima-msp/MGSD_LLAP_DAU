@@ -1,9 +1,9 @@
-"""提案手法で学習されたパラメータの可視化
+"""Plot the learned parameters of MGSD_LLap_DAU.
 
 Example:
 
-    $ python3 v2_plot_parameters.py synthetic
-    $ python3 v2_plot_parameters.py realdata
+    $ python3 plot_parameters.py Synthetic
+    $ python3 plot_parameters.py Weather
 
     The out put files are saved in the './results/_figures/{dataset}/parameters/' directory.
 
@@ -18,10 +18,10 @@ import os
 import sys
 
 import numpy as np
-import matplotlib.pyplot as plt
-import scienceplots
 import torch
 
+import matplotlib.pyplot as plt
+import scienceplots
 plt.style.use(['science','ieee','grid','high-vis'])
 
 if __name__ == '__main__':

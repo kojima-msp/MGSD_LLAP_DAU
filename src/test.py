@@ -1,5 +1,16 @@
+"""Test existing and proposed methods on each datasets.
+
+Example:
+
+    $ python3 src/test.py Weather ae
+    $ python3 src/test.py Weather gcn
+    $ python3 src/test.py Weather TGSR_DAU
+    $ python3 src/test.py Weather MGSD_LLap_DAU
 """
-$python3 src/test.py
+"""
+@Author: Hayate Kojima
+@Contact: h-kojima@msp-lab.org
+@Date: 2025/04/01
 """
 
 import sys

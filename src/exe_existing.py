@@ -1,15 +1,32 @@
-import torch
-import numpy as np
-import pandas as pd
-import scipy.io as io
+"""Test existing methods on each datasets.
+
+Example:
+
+    $ python3 src/exe_existing.py Weather glpf
+    $ python3 src/exe_existing.py Weather svds
+    $ python3 src/exe_existing.py Weather hd
+
+    The out put files are saved in the './results/{dataset}/data_{suffix}/{model_name}/' directory.
+
+"""
+"""
+@Author: Hayate Kojima
+@Contact: h-kojima@msp-lab.org
+@Date: 2025/04/01
+"""
+
 import os
-import glob
 import sys
+import glob
+
+import numpy as np
+import scipy.io as io
+import torch
+
 from methods.glpf import GLPF
 from methods.hd import HD
 from methods.svds import SVDS
 
-# 共通の設定
 N_epochs = 30
 N_layers = 1
 N_split = 2
@@ -88,7 +105,5 @@ for trial_idx in range(N_split):
             print(model_name, 'test{:02d}'.format(trial_idx*N_testfiles+test_idx), f'{noise:.3f}', np.sqrt(loss.cpu().detach().numpy()))     
             X_out_list[test_idx, noise_idx, :, :] = X_out.cpu().detach().numpy()
 
-    # save as csv                
-    np.savez_compressed(f'./results/{datatype}/data_{suffix}/{model_name}/test{trial_idx:02d}_nepochs{N_epochs}.npz',
-                        X_out_list=X_out_list
-                        )
+    # save              
+    np.savez_compressed(f'./results/{datatype}/data_{suffix}/{model_name}/test{trial_idx:02d}_nepochs{N_epochs}.npz', X_out_list=X_out_list)

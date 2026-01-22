@@ -1,3 +1,19 @@
+"""Train the models using datasets.
+
+Example:
+
+    $ python3 src/train.py Weather ae
+    $ python3 src/train.py Weather gcn
+    $ python3 src/train.py Weather TGSR_DAU
+    $ python3 src/train.py Weather MGSD_LLap_DAU
+
+"""
+"""
+@Author: Hayate Kojima
+@Contact: h-kojima@msp-lab.org
+@Date: 2025/04/01
+"""
+
 import numpy as np
 
 import torch
@@ -14,7 +30,6 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.set_default_dtype(torch.float64)
 torch.set_default_device(device)
 
-# 共通の設定
 N_layers = 9
 
 args = sys.argv

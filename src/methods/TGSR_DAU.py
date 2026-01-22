@@ -72,8 +72,6 @@ class TGSR_DAU(nn.Module):
         Z_m = (Z_m - torch.min(Z_m)) / (torch.max(Z_m) - torch.min(Z_m))
         Z_s = Z_s * 10
         Z_m = Z_m * 10
-        # Z_s = Z_s / (M * K) ## 正規化の代わりに平均化
-        # Z_m = Z_m / (N * K) ## 正規化の代わりに平均化
         W_s = torch.mul(torch.exp(-Z_s / torch.tensor(1)), torch.ones((N_s, N_s))-torch.eye(N_s))
         W_m = torch.mul(torch.exp(-Z_m / torch.tensor(1)), torch.ones((N_m, N_m))-torch.eye(N_m))
         D_s = torch.squeeze(W_s @ torch.ones(N_s,1))

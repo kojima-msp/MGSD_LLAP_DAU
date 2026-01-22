@@ -1,9 +1,16 @@
+"""Print the RMSE results for ablation study.
+
+Example:
+
+    $ python3 src/print_ablation.py
+
 """
-$python3 src/test.py
+"""
+@Author: Hayate Kojima
+@Contact: h-kojima@msp-lab.org
+@Date: 2025/12/26
 """
 
-import sys
-import os
 import glob
 
 import numpy as np
