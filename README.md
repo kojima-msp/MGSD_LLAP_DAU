@@ -1,14 +1,12 @@
 MGSD_LLap_DAU
 ====
 
-
-
 Official Pytorch implementation of the paper "Algorithm Unrolling-based Denoising of Multimodal Graph Signals" (submmited to IEEE TSIPN).
 
 ![Proposed Method](doc/img/proposed_method.jpg)
 
 [![paper info](https://img.shields.io/badge/IEEE_TSIPN-Submitted-gray?labelColor=00629B)]()
-[![arXiv](https://img.shields.io/badge/arXiv-2505.22175v2-gray?labelColor=b31b1b)](https://https://arxiv.org/abs/2505.22175v2)
+[![arXiv](https://img.shields.io/badge/arXiv-2505.22175v2-gray?labelColor=b31b1b)](https://arxiv.org/abs/2505.22175v2)
 [![Python](https://custom-icon-badges.herokuapp.com/badge/Python-3572A5?logo=Python&logoColor=white)]()
 [![paper info](https://img.shields.io/badge/Our_Homepage-green)](https://www.sip.comm.eng.osaka-u.ac.jp/)
 
