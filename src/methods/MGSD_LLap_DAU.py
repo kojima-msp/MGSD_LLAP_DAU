@@ -62,37 +62,48 @@ class MGSD_LLap_DAU(nn.Module):
         return (x - torch.min(x)) / (torch.max(x) - torch.min(x))
 
     ## convert matrix to half-vector
+    ## edited by Hayate Kojima (2026/02/13)
     def _mat2vech(self, L):
         N = L.shape[0]
-        ell = torch.zeros(int(N*(N-1)/2), 1)
-        k = 0
-        for col in range(N):
-            for row in range(col+1, N):
-                ell[k] = L[row, col]
-                k = k + 1
-        return ell
+        rows, cols = torch.triu_indices(N, N, offset=1)
+        return L[rows, cols].unsqueeze(1)
     
     ## arange transformation matrix that convert vec(L) from vech(L)
+    ## edited by Hayate Kojima (2026/02/13)
     def _create_Phi(self, N):
-        Phi = torch.zeros(N**2, int(N*(N-1)/2))
-        k = 0
-        for col in range(N):
-            for row in range(N):
-                if row > col:
-                    Phi[k, k-int((col+1)*(col+2)/2)] = 1
-                    Phi[int(k/N)*(N+1), k-int((col+1)*(col+2)/2)] = -1
-                elif row < col:
-                    Phi[k, col-1+int((N-2+N-row-1)*row/2)] = 1
-                    Phi[int(k/N)*(N+1), col-1+int((N-2+N-row-1)*row/2)] = -1
-                k = k+1
+        M = int(N * (N - 1) / 2)
+        Phi = torch.zeros(N**2, M)
+
+        rows, cols = torch.tril_indices(N, N, offset=-1)
+        sort_order = torch.argsort(cols * N + rows)
+        rows = rows[sort_order]
+        cols = cols[sort_order]
+
+        vech_indices = torch.arange(M)
+
+        # --- Lower Triangle (row > col) ---
+        k_lower = cols * N + rows
+        Phi[k_lower, vech_indices] = 1.0
+
+        diag_indices_lower = cols * (N + 1)
+        Phi[diag_indices_lower, vech_indices] = -1.0
+
+        # --- Upper Triangle (row < col) ---
+        k_upper = rows * N + cols
+        Phi[k_upper, vech_indices] = 1.0
+
+        diag_indices_upper = rows * (N + 1)
+        Phi[diag_indices_upper, vech_indices] = -1.0
+
         return Phi
-    
+
+    ## edited by Hayate Kojima (2026/02/13)
     def _create_Psi(self, N):
+
         Phi = self._create_Phi(N)
-        tmp = torch.zeros(N, N**2)
-        for row in range(N):
-            tmp[row, row*(N+1)] = 1
-        Psi = torch.mm(tmp, Phi)
+        diag_indices = torch.arange(0, N**2, N + 1)
+        Psi = Phi[diag_indices]
+        
         return Psi
     
     def _gsp_llap_pds(self, ell, X,
@@ -169,28 +180,28 @@ class MGSD_LLap_DAU(nn.Module):
 
             X_ = X_out.T
 
-            # code of line 2 in Algorithm 2
+            # line 2 in Algorithm 2
             if self.L_m is None:
                 ell_m = self._gsp_llap_pds( ell=self._mat2vech(L_m), X=X_,
                                         Phi=self.Phi_m, Psi=self.Psi_m,
                                         alpha=alpha_m, beta=beta_m, gamma=gamma_m)
                 L_m = torch.mm(self.Phi_m, ell_m).reshape(self.N_m, self.N_m).T
-            else: # use ground truth L_m
+            else: # use groundtruth/Learned L_m
                 L_m = self.L_m
             
-            # code of line 3 in Algorithm 2
+            # line 3 in Algorithm 2
             X_ = torch.mm(torch.linalg.pinv(torch.eye(self.N_m) + alpha_m * L_m), Y.T)
 
-            # code of line 4 in Algorithm 2
+            # line 4 in Algorithm 2
             if self.L_s is None:
                 ell_s = self._gsp_llap_pds( ell=self._mat2vech(L_s), X=X_.T,
                                         Phi=self.Phi_s, Psi=self.Psi_s,
                                         alpha=alpha_s, beta=beta_s, gamma=gamma_s)
                 L_s = torch.mm(self.Phi_s, ell_s).reshape(self.N_s, self.N_s).T
-            else: # use ground truth L_s
+            else: # use groundtruth/Learned L_s
                 L_s = self.L_s
             
-            # code of line 5 in Algorithm 2
+            # line 5 in Algorithm 2
             X_out = torch.mm(torch.linalg.pinv(torch.eye(self.N_s) + alpha_s * L_s), X_.T)
 
             X_out_list[layer+1, :, :] = X_out

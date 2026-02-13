@@ -12,6 +12,7 @@ Example:
 """
 
 import glob
+from tqdm import tqdm
 
 import numpy as np
 from scipy import io
@@ -49,6 +50,7 @@ if __name__ == '__main__':
 
     trial_list = sorted(glob.glob(f'./data/{datatype}/trained_params/{model_name}/*.pth'))
 
+    rmse_observed = np.zeros_like(noise_list) # observed data
     rmse_oracle = np.zeros_like(noise_list) # use ground truth graphs
     rmse_proposed = np.zeros_like(noise_list) # use learned graphs
     rmse_learned = np.zeros_like(noise_list) # use predefined graphs
@@ -74,7 +76,7 @@ if __name__ == '__main__':
         model_lm = MGSD_LLap_DAU(layers=N_layers, N_s=N_s, N_m=N_m)
         model_lm.load_state_dict(torch.load(f'./data/{datatype}/trained_params/{model_name}_lm/fortest{trial_idx}.pth', weights_only=True))
 
-        for test_idx, test_matfile in enumerate(test_matfile_list):
+        for test_idx, test_matfile in enumerate(tqdm(test_matfile_list)):
             TestData = io.loadmat(test_matfile)
             
             X = TestData["X"] # ground truth
@@ -85,11 +87,14 @@ if __name__ == '__main__':
 
                 Y = Y_list[noise_idx, : , :]
 
+                # observed
+                rsme = root_mean_squared_error(X, Y.detach().cpu().numpy())
+                rmse_observed[noise_idx] += rsme
+
                 # proposed
                 _, _, _, X_out = model.forward(Y)
                 rmse = root_mean_squared_error(X, X_out.detach().cpu().numpy())
                 rmse_proposed[noise_idx] += rmse
-                print(f'Noise {noise:.2f}\t Proposed RMSE: {rmse:.4f}', end='\t')
 
                 L_s_gt = torch.tensor(TestData["L_s"])
                 L_m_gt = torch.tensor(TestData["L_m"])
@@ -99,28 +104,25 @@ if __name__ == '__main__':
                 _, _, _, X_out = model_gt.forward(Y, L_m=L_m_gt, L_s=L_s_gt)
                 rmse = root_mean_squared_error(X, X_out.detach().cpu().numpy())
                 rmse_oracle[noise_idx] += rmse
-                print(f'Oracle RMSE: {rmse:.4f}', end='\t')
 
                 # predefined
                 _, _, _, X_out = model_rbf.forward(Y, L_m=L_m_pre, L_s=L_s_pre)
                 rmse = root_mean_squared_error(X, X_out.detach().cpu().numpy())
                 rmse_learned[noise_idx] += rmse
-                print(f'Predefined RMSE: {rmse:.4f}', end='\t')
 
                 # pretrained spatial graph
                 _, _, _, X_out = model_ls.forward(Y, L_s=L_s_pre)
                 rmse = root_mean_squared_error(X, X_out.detach().cpu().numpy())
                 rmse_ls[noise_idx] += rmse
-                print(f'Pretrained Spatial RMSE: {rmse:.4f}', end='\t')
 
                 # pretrained modality graph
                 _, _, _, X_out = model_lm.forward(Y, L_m=L_m_pre)
                 rmse = root_mean_squared_error(X, X_out.detach().cpu().numpy())
                 rmse_lm[noise_idx] += rmse
-                print(f'Pretrained Modality RMSE: {rmse:.4f}')
-        
-    print(rmse_proposed/len(test_matfile_list)*N_split)
-    print(rmse_oracle/len(test_matfile_list)*N_split)
-    print(rmse_learned/len(test_matfile_list)*N_split)
-    print(rmse_ls/len(test_matfile_list)*N_split)
-    print(rmse_lm/len(test_matfile_list)*N_split)
+    
+    print('Observed', rmse_observed/len(test_matfile_list)/N_split)
+    print('Oracle', rmse_oracle/len(test_matfile_list)/N_split)
+    print('Learned', rmse_learned/len(test_matfile_list)/N_split)
+    print('Learned L_s', rmse_ls/len(test_matfile_list)/N_split)
+    print('Learned L_m', rmse_lm/len(test_matfile_list)/N_split)
+    print('Proposed', rmse_proposed/len(test_matfile_list)/N_split)
