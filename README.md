@@ -17,7 +17,7 @@ Official Pytorch implementation of the paper "Algorithm Unrolling-based Denoisin
 
 ## Install
 We use [uv](https://docs.astral.sh/uv/) to manage the Python environment. 
-You can download the dataset and pretrained models used in our experiments from [this link]https://drive.google.com/drive/folders/1BrJmYvldVDsAms-1lzGqUOjOU1rwkQvb?usp=sharing). 
+You can download the dataset and pretrained models used in our experiments from [here](https://drive.google.com/drive/folders/1BrJmYvldVDsAms-1lzGqUOjOU1rwkQvb?usp=sharing). 
 After downloading, please place the `data` directory in the root of this project.
 
 ```bash
