@@ -31,13 +31,12 @@ if __name__ == '__main__':
     mk_size = 4
     facecolor = "none"
     args = sys.argv
-    dataset = args[1]
-    path = f'./results/_figures/{dataset}/'
+    path = f'./results/_figures/Synthetic/'
 
 
     os.makedirs(path, exist_ok=True)
 
-    model = torch.load(f'./data/{dataset}/trained_params/MGSD_LLap_DAU/fortest{target_idx}.pth', weights_only=True)
+    model = torch.load(f'./data/Synthetic/trained_params/MGSD_LLap_DAU/fortest{target_idx}.pth', weights_only=True)
 
     T = np.arange(N_layers)
 
@@ -66,4 +65,4 @@ if __name__ == '__main__':
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1), frameon=False)
     ax.set_xlabel('Layer')
 
-    fig.savefig(path + f'{dataset}_MGSD_LLap_DAU_params.pdf')
+    fig.savefig(path + f'Synthetic_MGSD_LLap_DAU_params.pdf')

@@ -70,29 +70,29 @@ python3 src/train_ablation.py lm
 ### Test Models
 ```shell
 # Test existing and proposed method.
+python3 src/exe_existing.py Weather glpf
+python3 src/exe_existing.py Weather svds
+python3 src/exe_existing.py Weather hd
 python3 src/test.py Weather ae
 python3 src/test.py Weather gcn
 python3 src/test.py Weather TGSR_DAU
 python3 src/test.py Weather MGSD_LLap_DAU
-python3 src/exe_existing.py Weather glpf
-python3 src/exe_existing.py Weather svds
-python3 src/exe_existing.py Weather hd
 ```
 
 ### Print/Plot Results
 ```shell
 # print Table. 2 and Table 4
-python3 results/print_rmse.py Weather
+python3 src/print_rmse.py Weather
 # plot Fig. 4 and Fig. 9
-python3 results/plot_signal.py Weather
+python3 src/plot_signal.py Weather
 # print Table. 3
 python3 src/print_ablation.py
 # plot Fig. 5, Fig. 6, Fig. 10 and Fig. 11
-python3 results/plot_laplacian.py Weather
+python3 src/plot_laplacian.py Weather
 # plot Fig. 7
-python3 results/plot_parameters.py Weather
+python3 src/plot_parameters.py
 # plot Fig. 8
-python3 results/plot_layer_vs_rmse.py
+python3 src/plot_layer_vs_rmse.py
 ```
 
 ## Citation
