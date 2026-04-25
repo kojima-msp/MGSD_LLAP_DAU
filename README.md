@@ -1,16 +1,17 @@
 MGSD_LLap_DAU
 ====
 
-Official Pytorch implementation of the paper "Algorithm Unrolling-based Denoising of Multimodal Graph Signals" (submmited to IEEE TSIPN).
+Official Pytorch implementation of the paper "[Algorithm Unrolling-based Denoising of Multimodal Graph Signals](https://ieeexplore.ieee.org/document/11479865)" (accepted to IEEE TSIPN).
 
 ![Proposed Method](doc/img/proposed_method.jpg)
 
 ![Proposed Method](doc/img/visualization.png)
 
-[![paper info](https://img.shields.io/badge/IEEE_TSIPN-Submitted-gray?labelColor=00629B)]()
+[![paper info](https://img.shields.io/badge/DOI-10.1109/TSIPN.2026.3683184-gray?labelColor=FCB61F)](https:doi.org/10.1109/TSIPN.2026.3683184)
+[![doi](https://img.shields.io/badge/IEEE_TSIPN-Accepted-gray?labelColor=00629B)](https://ieeexplore.ieee.org/document/11479865)
 [![arXiv](https://img.shields.io/badge/arXiv-2505.22175v2-gray?labelColor=b31b1b)](https://arxiv.org/abs/2505.22175v2)
 [![Python](https://custom-icon-badges.herokuapp.com/badge/Python-3572A5?logo=Python&logoColor=white)]()
-[![paper info](https://img.shields.io/badge/Our_Homepage-green)](https://www.sip.comm.eng.osaka-u.ac.jp/)
+[![our-page](https://img.shields.io/badge/Our_Homepage-green)](https://www.sip.comm.eng.osaka-u.ac.jp/)
 
 ## Abstract
 > We propose a denoising method for multimodal graph signals by an alternating minimization scheme that sequentially solves signal restoration and graph learning problems. Many complex-structured data, i.e., those on sensor networks, can capture multiple modalities at each measurement point, referred to as *modalities*. They are also assumed to have an underlying structure or correlations in modality as well as space. Such multimodal data are regarded as graph signals on a *twofold graph* and they are often corrupted by noise. Furthermore, their spatial/modality relationships are not always given a priori: We need to estimate twofold graphs during a denoising algorithm. In this paper, we consider a signal denoising method on twofold graphs, where graphs are learned simultaneously. Specifically, the graph learning subproblems are solved using the primal-dual splitting (PDS) algorithm, while the signal update has a closed-form solution. Parameters in this iterative algorithm are learned from training data by unrolling the iteration with deep algorithm unrolling. Experimental results on synthetic and real-world data demonstrate that the proposed method outperforms existing model- and deep learning-based graph signal denoising methods.
@@ -96,4 +97,16 @@ python3 src/plot_layer_vs_rmse.py
 ```
 
 ## Citation
-> H. Kojima, K. Takanami, Junya Hara, Yukihiro Bandoh, Seishi Takamura, Hirhoshi Higashi, and Yuichi Tanaka, "Algorithm Unrolling-based Denoising of Multimodal Graph Signals," xxx, xxx. 
+```
+  @ARTICLE{11479865,  
+    author={Kojima, Hayate and Takanami, Keigo and Hara, Junya and Bandoh, Yukihiro and Takamura, Seishi and Higashi, Hiroshi and Tanaka, Yuichi},  
+    journal={IEEE Transactions on Signal and Information Processing over Networks},  
+    title={Algorithm Unrolling-based Denoising of Multimodal Graph Signals},  
+    year={2026},  
+    volume={},  
+    number={},  
+    pages={1-12},  
+    keywords={Radio broadcasting;Frequency modulation;Filtering;Filters;Low-pass filters;Circuits and systems;Band-pass filters;Filtering theory;Collaborative filtering;Filter banks;Multimodal data;signal denoising;graph learning;deep algorithm unrolling},  
+    doi={10.1109/TSIPN.2026.3683184}
+}
+```
