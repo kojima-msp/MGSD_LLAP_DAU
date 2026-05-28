@@ -2,7 +2,7 @@ MGSD_LLap_DAU
 ====
 
 [![paper-info](https://img.shields.io/badge/IEEE_TSIPN-Accepted-gray?labelColor=00629B)](https://ieeexplore.ieee.org/document/11479865)
-[![doi](https://img.shields.io/badge/DOI-10.1109/TSIPN.2026.3683184-gray?labelColor=FCB61F)](https:doi.org/10.1109/TSIPN.2026.3683184)
+[![doi](https://img.shields.io/badge/DOI-10.1109/TSIPN.2026.3683184-gray?labelColor=FCB61F)](https://doi.org/10.1109/TSIPN.2026.3683184)
 [![arXiv](https://img.shields.io/badge/arXiv-2505.22175v2-gray?labelColor=b31b1b)](https://arxiv.org/abs/2505.22175v2)
 [![Python](https://custom-icon-badges.herokuapp.com/badge/Python-3572A5?logo=Python&logoColor=white)]()
 [![our-page](https://img.shields.io/badge/Our_Homepage-green)](https://www.sip.comm.eng.osaka-u.ac.jp/)
